@@ -1,251 +1,68 @@
 import MapView from 'react-native-maps';
 import React, { Component } from 'react';
-import {
-  Platform,
-  StyleSheet,
-  Text,
-  View
-} from 'react-native';
+import { observer } from 'mobx-react';
+import { getSnapshot } from 'mobx-state-tree';
+import { Text } from 'react-native';
 
+import Marker from 'components/Marker';
+ 
+import mapStyle from './mapStyle';
+import styles from './styles';
+
+import AppStore from 'store';
+
+@observer
 export default class Map extends Component {
+
+  componentDidMount() {
+    return getCurrentLocation().then(pos => this.updateUserLocation(pos.coords));
+  }
+
   render() {
+    const { user, region } = AppStore;
+
+    if (!user.region) return <Text>Loading...</Text>
+
     return (
         <MapView
+          ref={map => this.map = map}
           style={styles.map}
-          region={{
-            latitude: 52.056729, 
-            longitude: 1.148261,
-            latitudeDelta: 0.015,
-            longitudeDelta: 0.0121
-          }}
-          showsUserLocation={true}
+          region={{...region}}
+          showsUserLocation
           customMapStyle={mapStyle}
+          onRegionChangeComplete={reg => region.update(reg)}
+          onUserLocationChange={e => this.updateUserLocation(e.nativeEvent.coordinate)}
+          onMapReady={() => region.update(getSnapshot(user.region))}
+          showsMyLocationButton={false}
+          loadingEnabled
         >
+          <Marker
+            LatLng={{ latitude: region.latitude, longitude: region.longitude }}
+            title="some title"
+            description="some description"
+          />
         </MapView>
     );
   }
+
+  updateUserLocation(coordinate) {
+    const { user } = AppStore;
+    user.update({ region: { latitude: coordinate.latitude, longitude: coordinate.longitude } })
+  }
+
+  // animateToUser(reg) {
+  //   const { user, region } = AppStore;
+  //   this.map.animateToRegion(reg);
+  // }
 }
 
-const mapStyle = [
-  {
-    "elementType": "geometry",
-    "stylers": [
-      {
-        "color": "#ebe3cd"
-      }
-    ]
-  },
-  {
-    "elementType": "labels.text.fill",
-    "stylers": [
-      {
-        "color": "#523735"
-      }
-    ]
-  },
-  {
-    "elementType": "labels.text.stroke",
-    "stylers": [
-      {
-        "color": "#f5f1e6"
-      }
-    ]
-  },
-  {
-    "featureType": "administrative",
-    "elementType": "geometry.stroke",
-    "stylers": [
-      {
-        "color": "#c9b2a6"
-      }
-    ]
-  },
-  {
-    "featureType": "administrative.land_parcel",
-    "elementType": "geometry.stroke",
-    "stylers": [
-      {
-        "color": "#dcd2be"
-      }
-    ]
-  },
-  {
-    "featureType": "administrative.land_parcel",
-    "elementType": "labels.text.fill",
-    "stylers": [
-      {
-        "color": "#ae9e90"
-      }
-    ]
-  },
-  {
-    "featureType": "landscape.natural",
-    "elementType": "geometry",
-    "stylers": [
-      {
-        "color": "#dfd2ae"
-      }
-    ]
-  },
-  {
-    "featureType": "poi",
-    "elementType": "geometry",
-    "stylers": [
-      {
-        "color": "#dfd2ae"
-      }
-    ]
-  },
-  {
-    "featureType": "poi",
-    "elementType": "labels.text.fill",
-    "stylers": [
-      {
-        "color": "#93817c"
-      }
-    ]
-  },
-  {
-    "featureType": "poi.park",
-    "elementType": "geometry.fill",
-    "stylers": [
-      {
-        "color": "#a5b076"
-      }
-    ]
-  },
-  {
-    "featureType": "poi.park",
-    "elementType": "labels.text.fill",
-    "stylers": [
-      {
-        "color": "#447530"
-      }
-    ]
-  },
-  {
-    "featureType": "road",
-    "elementType": "geometry",
-    "stylers": [
-      {
-        "color": "#f5f1e6"
-      }
-    ]
-  },
-  {
-    "featureType": "road.arterial",
-    "elementType": "geometry",
-    "stylers": [
-      {
-        "color": "#fdfcf8"
-      }
-    ]
-  },
-  {
-    "featureType": "road.highway",
-    "elementType": "geometry",
-    "stylers": [
-      {
-        "color": "#f8c967"
-      }
-    ]
-  },
-  {
-    "featureType": "road.highway",
-    "elementType": "geometry.stroke",
-    "stylers": [
-      {
-        "color": "#e9bc62"
-      }
-    ]
-  },
-  {
-    "featureType": "road.highway.controlled_access",
-    "elementType": "geometry",
-    "stylers": [
-      {
-        "color": "#e98d58"
-      }
-    ]
-  },
-  {
-    "featureType": "road.highway.controlled_access",
-    "elementType": "geometry.stroke",
-    "stylers": [
-      {
-        "color": "#db8555"
-      }
-    ]
-  },
-  {
-    "featureType": "road.local",
-    "elementType": "labels.text.fill",
-    "stylers": [
-      {
-        "color": "#806b63"
-      }
-    ]
-  },
-  {
-    "featureType": "transit.line",
-    "elementType": "geometry",
-    "stylers": [
-      {
-        "color": "#dfd2ae"
-      }
-    ]
-  },
-  {
-    "featureType": "transit.line",
-    "elementType": "labels.text.fill",
-    "stylers": [
-      {
-        "color": "#8f7d77"
-      }
-    ]
-  },
-  {
-    "featureType": "transit.line",
-    "elementType": "labels.text.stroke",
-    "stylers": [
-      {
-        "color": "#ebe3cd"
-      }
-    ]
-  },
-  {
-    "featureType": "transit.station",
-    "elementType": "geometry",
-    "stylers": [
-      {
-        "color": "#dfd2ae"
-      }
-    ]
-  },
-  {
-    "featureType": "water",
-    "elementType": "geometry.fill",
-    "stylers": [
-      {
-        "color": "#b9d3c2"
-      }
-    ]
-  },
-  {
-    "featureType": "water",
-    "elementType": "labels.text.fill",
-    "stylers": [
-      {
-        "color": "#92998d"
-      }
-    ]
-  }
-]
+export const snapToUser = () => {
+  const { user, region } = AppStore;
+  region.update(getSnapshot(user.region));
+}
 
-const styles = StyleSheet.create({
-  map: {
-    flex: 1,
-    zIndex: -1, 
-    ...StyleSheet.absoluteFillObject
-  }
-});
+export const getCurrentLocation = () => {
+  return new Promise((resolve, reject) => {
+    navigator.geolocation.getCurrentPosition(position => resolve(position), e => reject(e));
+  });
+};

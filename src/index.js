@@ -1,38 +1,47 @@
 import React, { Component } from 'react';
 import {
-  Platform,
   StyleSheet,
   View
 } from 'react-native';
 
-import Map from 'components/map';
+import Map, { snapToUser } from 'components/map';
+import SearchBar from 'components/searchBar';
+import ActionContainer from 'components/ActionContainer';
+import ActionButton from 'components/actions/ActionButton';
+import GenModal from 'components/modal';
 
-// type Props = {};
-export default class App extends Component<{}> {
+import AppStore from 'store';
+
+export default class App extends Component {
+  componentDidMount() {
+    const { movies } = AppStore;
+    AppStore.loadTestData().then(function() {console.log('FUCK')});
+  }
   render() {
     return (
       <View style={styles.container}>
+        <SearchBar/>
+        <ActionContainer>
+          <ActionButton icon='user' action={snapToUser}/>
+          <ActionButton icon='thumbTack' action={this.showNewFormModal}/>
+          <ActionButton icon='thumbTack' action={AppStore.loadTestData}/>
+        </ActionContainer>
         <Map/>
+        <GenModal/>
       </View>
     );
+  }
+  showNewFormModal() {
+    const { modal } = AppStore;
+
+    modal.showModal('', 'Test' );
   }
 }
 
 const styles = StyleSheet.create({
   container: {
     flex: 1,
-    justifyContent: 'center',
     alignItems: 'center',
     backgroundColor: '#F5FCFF',
-  },
-  welcome: {
-    fontSize: 20,
-    textAlign: 'center',
-    margin: 10,
-  },
-  instructions: {
-    textAlign: 'center',
-    color: '#333333',
-    marginBottom: 5,
   }
 });
